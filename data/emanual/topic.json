@@ -1,0 +1,6 @@
+{
+ "topic": "emanual",
+ "topic_name": "Samsung TV user manual",
+ "description": "Using and configuring a Samsung smart TV as described in its e-manual: picture and sound settings, the remote control, apps, Ambient Mode, connecting devices, network, accessibility, and troubleshooting the TV.",
+ "source": "RAGBench (galileo-ai/ragbench, revision 97808f3e, CC-BY-4.0)"
+}

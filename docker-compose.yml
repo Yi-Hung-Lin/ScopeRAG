@@ -1,0 +1,74 @@
+services:
+  vllm:
+    image: ${VLLM_IMAGE:-vllm/vllm-openai:v0.29.0}
+    entrypoint: ${VLLM_ENTRYPOINT:-vllm serve}
+    command:
+      - ${MODEL:-unsloth/Llama-3.1-8B-Instruct}
+      - --revision=${MODEL_REVISION:-4699cc75b550f9c6f3173fb80f4703b62d946aa5}
+      - --served-model-name=llama
+      - --tokenizer=/adapters/defense_model
+      - --dtype=float16
+      - --enable-lora
+      - --max-lora-rank=8
+      - --lora-modules=reasalign=/adapters/defense_model
+      - --max-model-len=8192
+      - --gpu-memory-utilization=${GPU_UTIL:-0.85}
+      - --generation-config=vllm
+      - --port=8000
+    environment:
+      - HF_TOKEN=${HF_TOKEN:-}
+    volumes:
+      - ./adapters:/adapters:ro
+      - hf-cache:/root/.cache/huggingface
+    ipc: host
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/v1/models')"]
+      interval: 10s
+      timeout: 5s
+      retries: 90
+      start_period: 60s
+
+  api:
+    build: ./api
+    environment:
+      - TOPIC=${TOPIC:-emanual}
+      - VLLM_URL=http://vllm:8000
+      - HF_TOKEN=${HF_TOKEN:-}
+    volumes:
+      - ./data:/data:ro
+      - ./adapters:/adapters:ro
+      - hf-cache:/root/.cache/huggingface
+      - api-cache:/cache
+    ports:
+      - "${API_PORT:-8021}:8021"
+    depends_on:
+      vllm:
+        condition: service_healthy
+
+  webui:
+    profiles: ["ui"]
+    image: ghcr.io/open-webui/open-webui:v0.11.1
+    environment:
+      - OPENAI_API_BASE_URLS=http://api:8021/v1
+      - OPENAI_API_KEYS=none
+      - ENABLE_OLLAMA_API=false
+      - WEBUI_AUTH=false
+      - ENABLE_EVALUATION_ARENA_MODELS=false
+    volumes:
+      - webui-data:/app/backend/data
+    ports:
+      - "${WEBUI_PORT:-3001}:8080"
+    depends_on:
+      - api
+
+volumes:
+  hf-cache:
+  api-cache:
+  webui-data:

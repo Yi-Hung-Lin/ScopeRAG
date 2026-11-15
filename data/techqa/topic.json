@@ -1,0 +1,6 @@
+{
+ "topic": "techqa",
+ "topic_name": "IBM software technical support",
+ "description": "Technical support for IBM software products, as covered by IBM technotes and support documents: installation, configuration, error messages and troubleshooting, fixes, APARs and fix packs, security bulletins, and product usage for IBM software such as WebSphere, DB2, MQ, Business Process Manager, Tivoli, Maximo, Cognos, Rational, SPSS and similar.",
+ "source": "RAGBench (galileo-ai/ragbench, revision 97808f3e, CC-BY-4.0)"
+}
